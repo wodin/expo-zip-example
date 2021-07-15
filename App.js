@@ -3,10 +3,11 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import * as FileSystem from "expo-file-system";
+import { unzip } from "react-native-zip-archive";
 
 async function readCacheDirectory(setEntries) {
   const entries = await FileSystem.readDirectoryAsync(
-    FileSystem.cacheDirectory
+    FileSystem.cacheDirectory + "sample"
   );
   setEntries(entries);
 }
@@ -19,6 +20,7 @@ async function isFileAsync(uri) {
 export default function App() {
   const [entries, setEntries] = useState([]);
   const [downloaded, setDownloaded] = useState(false);
+  const [contents, setContents] = useState(null);
   const uri = FileSystem.cacheDirectory + "sample.zip";
 
   useEffect(() => {
@@ -44,12 +46,29 @@ export default function App() {
 
   useEffect(() => {
     if (downloaded) {
-      readCacheDirectory(setEntries);
+      const targetPath = FileSystem.cacheDirectory + "sample";
+
+      unzip(uri, targetPath, "UTF-8")
+        .then((path) => {
+          console.log(`unzip completed at ${path}`);
+          readCacheDirectory(setEntries);
+          FileSystem.readAsStringAsync(targetPath + "/sample.txt")
+            .then((data) => {
+              setContents(data);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
   }, [downloaded]);
 
   return (
     <View style={styles.container}>
+      {contents && <Text style={styles.paragraph}>{contents}</Text>}
       <Text>{JSON.stringify(entries, null, 2)}</Text>
       <StatusBar style="auto" />
     </View>
@@ -62,5 +81,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  paragraph: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#000",
+    padding: 10,
+    margin: 10,
   },
 });
