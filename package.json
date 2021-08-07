@@ -6,7 +6,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "eas-build-post-install": "sed -i.bak 's/zip-test/拉開拉鏈/' android/app/src/main/res/values/strings.xml"
+    "eas-build-post-install": "sed -i.bak 's/zip-test/拉開拉鏈/' android/app/src/main/res/values/strings.xml && rm -f android/app/src/main/res/values/strings.xml.bak"
   },
   "dependencies": {
     "expo": "~42.0.1",
